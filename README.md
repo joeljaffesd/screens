@@ -1,5 +1,5 @@
-# AlloLib-kickstart
-Plug-n-Play Build Env for AlloLib Projects
+# Screens
+Dev env for screensavers using AlloLib
 
 ## Using
 1. Clone project and get [AlloLib's dependencies](https://github.com/AlloSphere-Research-Group/allolib/blob/main/readme.md)
