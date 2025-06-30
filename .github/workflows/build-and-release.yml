@@ -22,7 +22,7 @@ jobs:
       uses: lukka/get-cmake@latest
       
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           build/
@@ -53,8 +53,8 @@ jobs:
             # Create release directory
             New-Item -ItemType Directory -Force -Path "release"
             
-            # Copy executable and rename it
-            Copy-Item $executable.FullName "release\screens.exe"
+            # Copy executable and rename it to screensaver format
+            Copy-Item $executable.FullName "release\screens.scr"
             
             # Copy additional files if they exist
             if (Test-Path "README.md") { Copy-Item "README.md" "release\" }
@@ -75,43 +75,45 @@ jobs:
         }
       shell: powershell
         
-    # - name: Create archive
-    #   run: |
-    #     Compress-Archive -Path "release\*" -DestinationPath "screens-windows-x64.zip"
-    #   shell: powershell
+    - name: Create archive
+      run: |
+        Compress-Archive -Path "release\*" -DestinationPath "screens-windows-screensaver.zip"
+      shell: powershell
     
-    # - name: Upload artifacts
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: windows-binary
-    #     path: screens-windows-x64.zip
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-screensaver
+        path: screens-windows-screensaver.zip
         
-    # - name: Create Release
-    #   if: startsWith(github.ref, 'refs/tags/')
-    #   uses: softprops/action-gh-release@v1
-    #   with:
-    #     files: screens-windows-x64.zip
-    #     name: "Screens ${{ github.ref_name }}"
-    #     body: |
-    #       ## Screens - Particle Life Screensaver
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: screens-windows-screensaver.zip
+        name: "Screens Screensaver ${{ github.ref_name }}"
+        body: |
+          ## Screens - Particle Life Screensaver
           
-    #       Windows binary release for version ${{ github.ref_name }}
+          Windows screensaver release for version ${{ github.ref_name }}
           
-    #       ### Installation
-    #       1. Download and extract `screens-windows-x64.zip`
-    #       2. Run `screens.exe`
+          ### Installation
+          1. Download and extract `screens-windows-screensaver.zip`
+          2. Right-click on `screens.scr` and select "Install"
+          3. Or copy `screens.scr` to your Windows screensavers folder
+          4. Select "Screens" from your Windows screensaver settings
           
-    #       ### Controls
-    #       - Any key or mouse click to exit
-    #       - Space to pause/unpause simulation
-    #       - '1' key to regenerate parameters
+          ### Controls
+          - Any key, mouse click, or mouse movement to exit
+          - Space to pause/unpause simulation (when testing)
+          - '1' key to regenerate parameters (when testing)
           
-    #       ### System Requirements
-    #       - Windows 10 or later
-    #       - OpenGL 4.0+ compatible graphics card
+          ### System Requirements
+          - Windows 10 or later
+          - OpenGL 4.0+ compatible graphics card
           
-    #       Built with allolib framework.
-    #     draft: false
-    #     prerelease: false
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          Built with allolib framework for real-time particle life simulation.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
