@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check for -n flag (no run)
+NO_RUN=false
+if [ "$1" == "-n" ]; then
+  NO_RUN=true
+fi
+
 mkdir -p build/Release
 cmake -DCMAKE_BUILD_TYPE=Release -Wno-deprecated -DBUILD_EXAMPLES=0 -B build/Release -S .
 
@@ -12,6 +18,10 @@ cmake -DCMAKE_BUILD_TYPE=Release -Wno-deprecated -DBUILD_EXAMPLES=0 -B build/Rel
 
 result=$?
 if [ ${result} == 0 ]; then
-  cd bin
-  ./SCREENS
+  if [ "$NO_RUN" == false ]; then
+    cd bin
+    ./SCREENS
+  else
+    echo "Build successful. Skipping execution due to -n flag."
+  fi
 fi
