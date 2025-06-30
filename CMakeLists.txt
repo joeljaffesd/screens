@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 
-project(Allolib-Kickstart)
-set(APP_NAME Allolib-Kickstart)
+project(SCREENS)
+set(APP_NAME SCREENS)
 
 # cmake scripts are kept in the cmake directory
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
