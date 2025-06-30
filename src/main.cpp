@@ -154,10 +154,12 @@ struct MyApp : public al::App {
   
   bool onKeyDown(const al::Keyboard &k) override {
     quit();
+    return true; // <- quit on key down
   }
 
   bool onMouseDown(const al::Mouse &m) override {
     quit();
+    return true; // <- quit on mouse down
   }
 
   void onDraw(al::Graphics &g) { 
