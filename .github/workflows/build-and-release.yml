@@ -1,0 +1,116 @@
+name: Build and Release Windows Binary
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Visual Studio
+      uses: microsoft/setup-msbuild@v1.3
+      
+    - name: Install CMake
+      uses: lukka/get-cmake@latest
+      
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          build/
+          ~/.hunter
+        key: ${{ runner.os }}-allolib-${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-allolib-
+
+    - name: Initialize allolib
+      run: |
+        bash ./init.sh
+      shell: bash
+
+    - name: Build main.cpp
+      run: |
+        ./run.sh
+      shell: bash
+    
+    - name: Find and package executable
+      run: |
+        # Find the built executable in bin folder
+        if (Test-Path "bin") {
+          $executable = Get-ChildItem -Path "bin" -Filter "*.exe" | Select-Object -First 1
+          
+          if ($executable) {
+            Write-Host "Found executable: $($executable.FullName)"
+            
+            # Create release directory
+            New-Item -ItemType Directory -Force -Path "release"
+            
+            # Copy executable and rename it
+            Copy-Item $executable.FullName "release\screens.exe"
+            
+            # Copy additional files if they exist
+            if (Test-Path "README.md") { Copy-Item "README.md" "release\" }
+            if (Test-Path "LICENSE") { Copy-Item "LICENSE" "release\" }
+            
+            # List what we packaged
+            Write-Host "Release contents:"
+            Get-ChildItem "release" | Format-Table Name, Length
+          } else {
+            Write-Host "No executable found in bin folder! Contents:"
+            Get-ChildItem "bin" | Format-Table FullName, Length
+            exit 1
+          }
+        } else {
+          Write-Host "bin folder not found! Listing directory contents:"
+          Get-ChildItem "." | Format-Table Name, Length
+          exit 1
+        }
+      shell: powershell
+        
+    # - name: Create archive
+    #   run: |
+    #     Compress-Archive -Path "release\*" -DestinationPath "screens-windows-x64.zip"
+    #   shell: powershell
+    
+    # - name: Upload artifacts
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: windows-binary
+    #     path: screens-windows-x64.zip
+        
+    # - name: Create Release
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   uses: softprops/action-gh-release@v1
+    #   with:
+    #     files: screens-windows-x64.zip
+    #     name: "Screens ${{ github.ref_name }}"
+    #     body: |
+    #       ## Screens - Particle Life Screensaver
+          
+    #       Windows binary release for version ${{ github.ref_name }}
+          
+    #       ### Installation
+    #       1. Download and extract `screens-windows-x64.zip`
+    #       2. Run `screens.exe`
+          
+    #       ### Controls
+    #       - Any key or mouse click to exit
+    #       - Space to pause/unpause simulation
+    #       - '1' key to regenerate parameters
+          
+    #       ### System Requirements
+    #       - Windows 10 or later
+    #       - OpenGL 4.0+ compatible graphics card
+          
+    #       Built with allolib framework.
+    #     draft: false
+    #     prerelease: false
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
